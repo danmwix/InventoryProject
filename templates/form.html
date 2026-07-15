@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-card">
+    <h2>{{ 'Edit Item' if item else 'Add Item' }}</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <label>Serial Number</label>
+        <input type="text" name="serial_number" value="{{ item.serial_number if item else '' }}" required>
+
+        <label>Model</label>
+        <input type="text" name="model" value="{{ item.model if item else '' }}" required>
+
+        <label>Brand</label>
+        <input type="text" name="brand" value="{{ item.brand if item else '' }}" required>
+
+        <label>Category</label>
+        <select name="category">
+            {% for cat in categories %}
+            <option value="{{ cat }}" {{ 'selected' if item and item.category == cat else '' }}>{{ cat }}</option>
+            {% endfor %}
+        </select>
+
+        <label>Photo (optional)</label>
+        {% if item and item.image_path %}
+            <img src="{{ url_for('static', filename='uploads/' + item.image_path) }}" class="current-photo">
+        {% endif %}
+        <input type="file" name="image" accept="image/*">
+
+        <button type="submit">{{ 'Save Changes' if item else 'Add Item' }}</button>
+    </form>
+    <p><a href="{{ url_for('index') }}">Back to inventory</a></p>
+</div>
+{% endblock %}
