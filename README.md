@@ -1,5 +1,5 @@
-# InventoryProject
-# IT Inventory System
+@"
+# InventoryProject — IT Inventory System
 
 A Flask web app for tracking IT assets (laptops, desktops, printers, monitors) with login, search, category filters, and photo uploads.
 
@@ -35,12 +35,13 @@ pip install -r requirements.txt
 
 ### 4. Set up the database in MySQL Workbench
 
-- Open **MySQL Workbench** and connect to your local MySQL server.
-- Open `schema.sql` (File → Open SQL Script).
-- Click the **lightning bolt icon** (Execute) to run the whole script.
-- This creates the `it_inventory` database with `users` and `items` tables.
+1. Open **MySQL Workbench**.
+2. Click your local connection (usually named ``Local instance MySQL80`` or similar) and log in with your MySQL root password.
+3. Go to **File → Open SQL Script...** and select ``schema.sql`` from the cloned project folder.
+4. Click the **lightning bolt icon** (Execute) in the toolbar to run the whole script.
+5. Confirm it worked: in the left sidebar under **Schemas**, right-click and **Refresh All**, then check that ``it_inventory`` appears with ``users`` and ``items`` tables inside it.
 
-### 5. Create your own `config.py`
+### 5. Create your own \`config.py\`
 
 This file is **not** in the repo (it holds passwords) — you must create it yourself:
 
@@ -48,7 +49,7 @@ This file is **not** in the repo (it holds passwords) — you must create it you
 copy config.example.py config.py
 ```
 
-Then open `config.py` and change only the `user` and `password` fields to match **your own** MySQL Workbench login:
+Open ``config.py`` and change only the ``user`` and ``password`` fields to match **your own** MySQL Workbench login:
 
 ```python
 DB_CONFIG = {
@@ -59,7 +60,7 @@ DB_CONFIG = {
 }
 ```
 
-Leave everything else in the file (`SECRET_KEY`, `UPLOAD_FOLDER`, `CATEGORY_ICONS`) untouched.
+Leave everything else in the file (``SECRET_KEY``, ``UPLOAD_FOLDER``, ``CATEGORY_ICONS``) untouched.
 
 ### 6. Create the uploads folder (if missing)
 
@@ -77,4 +78,47 @@ Visit **http://127.0.0.1:5000/signup** to create your first account, then log in
 
 ## Running on the shared network (LAN)
 
-The app already binds to `0.0.0.0`, so anyone on the same Wi-Fi/network can reach it at:
+The app binds to ``0.0.0.0``, so anyone on the same Wi-Fi/network can reach it at:
+
+\`\`\`
+http://<host-machine's-IP>:5000
+\`\`\`
+
+Find the host machine's IP with ``ipconfig`` (look for IPv4 Address).
+
+## Day-to-day Git workflow (for the team)
+
+```powershell
+git pull                     # get latest changes before you start
+# ... make your changes ...
+git add .
+git commit -m "describe what you changed"
+git push
+```
+
+Pull before you push, and communicate in the group chat if you're editing the same file as someone else to avoid merge conflicts.
+
+## Project structure
+
+\`\`\`
+InventoryProject/
+├── app.py                  # Routes: auth, item CRUD, search, CSV export
+├── auth.py                 # Signup/login/logout, password hashing, route protection
+├── db.py                   # MySQL connection handling
+├── config.py                # Your local DB credentials (NOT in git)
+├── config.example.py       # Template — copy this to config.py
+├── schema.sql               # Run this in MySQL Workbench to create the DB
+├── requirements.txt
+├── templates/               # HTML pages
+├── static/
+│   ├── style.css
+│   └── uploads/             # Item photos (not tracked in git)
+└── README.md
+\`\`\`
+
+## Troubleshooting
+
+- **``Access denied for user``** → your ``config.py`` password doesn't match your MySQL login.
+- **``Unknown database 'it_inventory'``** → you skipped running ``schema.sql``.
+- **Port 5000 already in use** → close any other running instance of ``app.py``, or change the port in the last line of ``app.py``.
+"@ | Out-File -FilePath README.md -Encoding utf8
