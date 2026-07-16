@@ -1,124 +1,262 @@
 @"
 # InventoryProject — IT Inventory System
 
-A Flask web app for tracking IT assets (laptops, desktops, printers, monitors) with login, search, category filters, and photo uploads.
+A Flask web application for managing IT assets such as laptops, desktops, printers, and monitors. The system includes user authentication, inventory management (CRUD), search functionality, category filtering, image uploads, and CSV export.
+
+---
 
 ## Prerequisites
 
-- Python 3.10+
-- MySQL Server + MySQL Workbench
+Before running the project, install the following:
+
+- Python 3.10 or newer
+- MySQL Server
+- MySQL Workbench
 - Git
 
-## Setup (do this once per machine)
+---
 
-### 1. Clone the repo
+# Setup (Run Once Per Machine)
+
+## 1. Clone the repository
 
 ```powershell
 git clone https://github.com/danmwix/InventoryProject.git
 cd InventoryProject
 ```
 
-### 2. Create and activate a virtual environment
+---
+
+## 2. Create and activate a virtual environment
 
 ```powershell
 python -m venv venv
 venv\Scripts\activate
 ```
 
-You should see `(venv)` in your prompt.
+When activated, your terminal should display:
 
-### 3. Install dependencies
+```text
+(venv)
+```
+
+---
+
+## 3. Install the project dependencies
 
 ```powershell
 pip install -r requirements.txt
 ```
 
-### 4. Set up the database in MySQL Workbench
+---
+
+## 4. Create the database
 
 1. Open **MySQL Workbench**.
-2. Click your local connection (usually named ``Local instance MySQL80`` or similar) and log in with your MySQL root password.
-3. Go to **File → Open SQL Script...** and select ``schema.sql`` from the cloned project folder.
-4. Click the **lightning bolt icon** (Execute) in the toolbar to run the whole script.
-5. Confirm it worked: in the left sidebar under **Schemas**, right-click and **Refresh All**, then check that ``it_inventory`` appears with ``users`` and ``items`` tables inside it.
+2. Connect to your local MySQL server.
+3. Select **File → Open SQL Script...**
+4. Open the project's **schema.sql** file.
+5. Click the **⚡ Execute** button.
+6. Refresh the **Schemas** panel.
 
-### 5. Create your own \`config.py\`
+You should now have:
 
-This file is **not** in the repo (it holds passwords) — you must create it yourself:
+```text
+it_inventory
+├── users
+└── items
+```
+
+---
+
+## 5. Create your own config.py
+
+For security reasons, **config.py is NOT stored in GitHub**.
+
+Create it from the template:
 
 ```powershell
 copy config.example.py config.py
 ```
 
-Open ``config.py`` and change only the ``user`` and ``password`` fields to match **your own** MySQL Workbench login:
+Open **config.py** and update only your MySQL username and password.
+
+Example:
 
 ```python
 DB_CONFIG = {
     "host": "localhost",
-    "user": "root",              # <-- your MySQL username
-    "password": "your_password", # <-- your MySQL password
+    "user": "root",
+    "password": "your_mysql_password",
     "database": "it_inventory"
 }
 ```
 
-Leave everything else in the file (``SECRET_KEY``, ``UPLOAD_FOLDER``, ``CATEGORY_ICONS``) untouched.
+Leave the remaining settings unchanged.
 
-### 6. Create the uploads folder (if missing)
+---
+
+## 6. Create the uploads folder (if it doesn't exist)
 
 ```powershell
 mkdir static\uploads
 ```
 
-### 7. Run the app
+---
+
+## 7. Run the application
 
 ```powershell
 python app.py
 ```
 
-Visit **http://127.0.0.1:5000/signup** to create your first account, then log in.
+Open your browser and visit:
 
-## Running on the shared network (LAN)
+http://127.0.0.1:5000/signup
 
-The app binds to ``0.0.0.0``, so anyone on the same Wi-Fi/network can reach it at:
+Create your account, then log in.
 
-\`\`\`
-http://<host-machine's-IP>:5000
-\`\`\`
+---
 
-Find the host machine's IP with ``ipconfig`` (look for IPv4 Address).
+# Running on a Local Network (LAN)
 
-## Day-to-day Git workflow (for the team)
+The application runs on:
+
+```python
+host="0.0.0.0"
+```
+
+Anyone connected to the same Wi-Fi or LAN can access it using:
+
+```text
+http://<HOST-IP>:5000
+```
+
+Find your computer's IP address by running:
 
 ```powershell
-git pull                     # get latest changes before you start
-# ... make your changes ...
+ipconfig
+```
+
+Look for the **IPv4 Address**.
+
+Example:
+
+```text
+IPv4 Address . . . . . . : 192.168.1.25
+```
+
+Your teammates would then visit:
+
+```text
+http://192.168.1.25:5000
+```
+
+---
+
+# Daily Git Workflow
+
+Always pull before starting work.
+
+```powershell
+git pull
+
+# Make your changes
+
 git add .
-git commit -m "describe what you changed"
+git commit -m "Describe your changes"
 git push
 ```
 
-Pull before you push, and communicate in the group chat if you're editing the same file as someone else to avoid merge conflicts.
+If two people edit the same file, communicate before pushing to avoid merge conflicts.
 
-## Project structure
+---
 
-\`\`\`
+# Project Structure
+
+```text
 InventoryProject/
-├── app.py                  # Routes: auth, item CRUD, search, CSV export
-├── auth.py                 # Signup/login/logout, password hashing, route protection
-├── db.py                   # MySQL connection handling
-├── config.py                # Your local DB credentials (NOT in git)
-├── config.example.py       # Template — copy this to config.py
-├── schema.sql               # Run this in MySQL Workbench to create the DB
-├── requirements.txt
-├── templates/               # HTML pages
+│
+├── app.py                     # Main Flask application
+├── auth.py                    # Authentication logic
+├── db.py                      # Database connection helper
+├── schema.sql                 # MySQL database schema
+├── requirements.txt           # Python dependencies
+│
+├── config.example.py          # Configuration template
+├── config.py                  # Local credentials (ignored by Git)
+│
+├── README.md
+├── .gitignore
+│
+├── templates/
+│   ├── base.html
+│   ├── login.html
+│   ├── signup.html
+│   ├── forgot_password.html
+│   ├── index.html
+│   └── form.html
+│
 ├── static/
 │   ├── style.css
-│   └── uploads/             # Item photos (not tracked in git)
-└── README.md
-\`\`\`
+│   └── uploads/               # Uploaded inventory images
+│
+└── venv/                      # Virtual environment (ignored by Git)
+```
 
-## Troubleshooting
+---
 
-- **``Access denied for user``** → your ``config.py`` password doesn't match your MySQL login.
-- **``Unknown database 'it_inventory'``** → you skipped running ``schema.sql``.
-- **Port 5000 already in use** → close any other running instance of ``app.py``, or change the port in the last line of ``app.py``.
+# Troubleshooting
+
+### Access denied for user
+
+Your MySQL username or password in **config.py** is incorrect.
+
+---
+
+### Unknown database 'it_inventory'
+
+You have not executed **schema.sql** in MySQL Workbench.
+
+---
+
+### ModuleNotFoundError
+
+Activate the virtual environment and reinstall the dependencies:
+
+```powershell
+venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+---
+
+### Port 5000 already in use
+
+Close the other running Flask application or change the port in **app.py**.
+
+---
+
+### Images are not uploading
+
+Ensure the folder below exists:
+
+```text
+static/
+└── uploads/
+```
+
+---
+
+### Git push rejected
+
+Always pull the latest changes first:
+
+```powershell
+git pull
+git push
+```
+
+If a merge conflict occurs, resolve it locally before pushing.
+
 "@ | Out-File -FilePath README.md -Encoding utf8
