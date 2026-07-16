@@ -5,7 +5,7 @@ import io
 import mysql.connector
 from flask import Flask, render_template, request, redirect, url_for, flash, session, Response
 from werkzeug.utils import secure_filename
-from config import SECRET_KEY, UPLOAD_FOLDER, ALLOWED_EXTENSIONS, CATEGORY_ICONS
+from config import SECRET_KEY, UPLOAD_FOLDER, ALLOWED_EXTENSIONS, CATEGORY_ICONS, CATEGORY_COLORS
 from db import get_db_connection
 from auth import create_user, verify_user, login_required
 
@@ -19,8 +19,33 @@ def allowed_file(filename):
 
 
 @app.context_processor
-def inject_category_icons():
-    return {"category_icons": CATEGORY_ICONS}
+def inject_globals():
+    return {"category_icons": CATEGORY_ICONS, "category_colors": CATEGORY_COLORS}
+
+
+def fetch_items(query, category_filter):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    sql = "SELECT * FROM items WHERE 1=1"
+    params = []
+
+    if query:
+        like = f"%{query}%"
+        sql += " AND (serial_number LIKE %s OR model LIKE %s OR brand LIKE %s)"
+        params += [like, like, like]
+
+    if category_filter:
+        sql += " AND category = %s"
+        params.append(category_filter)
+
+    sql += " ORDER BY id DESC"
+    cursor.execute(sql, tuple(params))
+    items = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+    return items
 
 
 # ---------- AUTH ROUTES ----------
@@ -92,31 +117,14 @@ def index():
     query = request.args.get("q", "").strip()
     category_filter = request.args.get("category", "").strip()
 
+    items = fetch_items(query, category_filter)
+
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-
-    sql = "SELECT * FROM items WHERE 1=1"
-    params = []
-
-    if query:
-        like = f"%{query}%"
-        sql += " AND (serial_number LIKE %s OR model LIKE %s OR brand LIKE %s)"
-        params += [like, like, like]
-
-    if category_filter:
-        sql += " AND category = %s"
-        params.append(category_filter)
-
-    sql += " ORDER BY id DESC"
-    cursor.execute(sql, tuple(params))
-    items = cursor.fetchall()
-
     cursor.execute("SELECT category, COUNT(*) AS total FROM items GROUP BY category")
     category_counts = {row["category"]: row["total"] for row in cursor.fetchall()}
-
     cursor.execute("SELECT COUNT(*) AS total FROM items")
     total_items = cursor.fetchone()["total"]
-
     cursor.close()
     conn.close()
 
@@ -128,6 +136,23 @@ def index():
         count=len(items),
         category_counts=category_counts,
         total_items=total_items
+    )
+
+
+@app.route("/api/search")
+@login_required
+def api_search():
+    """Returns just the results fragment (count + table/empty-state) for live search."""
+    query = request.args.get("q", "").strip()
+    category_filter = request.args.get("category", "").strip()
+    items = fetch_items(query, category_filter)
+
+    return render_template(
+        "_results.html",
+        items=items,
+        query=query,
+        category_filter=category_filter,
+        count=len(items)
     )
 
 
