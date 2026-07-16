@@ -1,7 +1,7 @@
 @"
 # InventoryProject — IT Inventory System
 
-A Flask web application for managing IT assets such as laptops, desktops, printers, and monitors. The system includes user authentication, inventory management (CRUD), search functionality, category filtering, image uploads, and CSV export.
+A Flask web application for managing IT assets such as laptops, desktops, printers, and monitors. The system includes user authentication, inventory management (CRUD), live search functionality, category filtering, image uploads, CSV export, and admin-assisted password resets.
 
 ---
 
@@ -64,7 +64,8 @@ You should now have:
 ```text
 it_inventory
 ├── users
-└── items
+├── items
+└── password_reset_requests
 ```
 
 ---
@@ -104,7 +105,19 @@ mkdir static\uploads
 
 ---
 
-## 7. Run the application
+## 7. Create the admin account
+
+Run this once — it seeds the built-in administrator login:
+
+```powershell
+python seed_admin.py
+```
+
+You should see `Admin account created: admin@gmail.com` printed in the terminal.
+
+---
+
+## 8. Run the application
 
 ```powershell
 python app.py
@@ -115,6 +128,33 @@ Open your browser and visit:
 http://127.0.0.1:5000/signup
 
 Create your account, then log in.
+
+---
+
+# Admin Login
+
+The system has one built-in administrator account, created by `seed_admin.py`:
+
+```text
+Email:    admin@gmail.com
+Password: Admin123!
+```
+
+Log in with these credentials directly at `/login` to unlock the **Admin** link in the navbar. Keep these within the team only.
+
+---
+
+# How Password Resets Work
+
+There is no email server involved. Resets are handled directly by the admin:
+
+1. A user who forgot their password clicks **Forgot password?** on the login page and submits their email. This creates a pending request — nothing is emailed.
+2. The **admin** logs in using the credentials above and opens **Admin** from the navbar.
+3. Under **Pending Reset Requests**, the admin clicks **Reset Password** next to that user, enters a temporary password, and submits.
+4. The admin tells the user that temporary password directly (in person, group chat, etc.).
+5. The user logs in with the temporary password, then visits **Change Password** in the navbar to set their own permanent one.
+
+The admin can also reset any user's password anytime from the **All Users** table on the Admin page, even without a pending request.
 
 ---
 
@@ -178,8 +218,9 @@ If two people edit the same file, communicate before pushing to avoid merge conf
 InventoryProject/
 │
 ├── app.py                     # Main Flask application
-├── auth.py                    # Authentication logic
+├── auth.py                    # Authentication + admin reset logic
 ├── db.py                      # Database connection helper
+├── seed_admin.py               # Run once to create the admin@gmail.com account
 ├── schema.sql                 # MySQL database schema
 ├── requirements.txt           # Python dependencies
 │
@@ -194,8 +235,12 @@ InventoryProject/
 │   ├── login.html
 │   ├── signup.html
 │   ├── forgot_password.html
+│   ├── change_password.html
+│   ├── admin_dashboard.html
+│   ├── admin_reset.html
 │   ├── index.html
-│   └── form.html
+│   ├── form.html
+│   └── _results.html
 │
 ├── static/
 │   ├── style.css
@@ -217,6 +262,16 @@ Your MySQL username or password in **config.py** is incorrect.
 ### Unknown database 'it_inventory'
 
 You have not executed **schema.sql** in MySQL Workbench.
+
+---
+
+### Can't log in as admin
+
+You have not run:
+
+```powershell
+python seed_admin.py
+```
 
 ---
 
@@ -245,6 +300,12 @@ Ensure the folder below exists:
 static/
 └── uploads/
 ```
+
+---
+
+### TemplateNotFound
+
+A template listed under **Project Structure** above is missing from your local `templates/` folder. Check the list and create whichever file is missing.
 
 ---
 
