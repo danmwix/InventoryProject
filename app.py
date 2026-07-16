@@ -7,16 +7,19 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from werkzeug.utils import secure_filename
 from config import SECRET_KEY, UPLOAD_FOLDER, ALLOWED_EXTENSIONS, CATEGORY_ICONS, CATEGORY_COLORS
 from db import get_db_connection
-from auth import create_user, verify_user, login_required
+from auth import (
+    create_user, verify_user, login_required, admin_required,
+    create_reset_request, get_pending_requests, get_all_users,
+    admin_reset_password, change_password
+)
 
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+
 @app.after_request
 def add_no_cache_headers(response):
-    """Prevents the browser from caching protected pages, so hitting
-    the back/forward button after logout forces a fresh request to
-    the server instead of showing a stale cached page."""
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "-1"
@@ -94,6 +97,7 @@ def login():
         if user:
             session["user_id"] = user["id"]
             session["email"] = user["email"]
+            session["is_admin"] = bool(user.get("is_admin"))
             flash("Logged in successfully.", "success")
             return redirect(url_for("index"))
         else:
@@ -113,9 +117,80 @@ def logout():
 @app.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
     if request.method == "POST":
-        flash("If that email exists, a reset link would be sent (not yet implemented).", "success")
+        email = request.form.get("email", "").strip()
+        if email:
+            create_reset_request(email)
+
+        # Same message either way, so this can't be used to check which emails exist.
+        flash("If that email is registered, your admin has been notified and will reset your password.", "success")
         return redirect(url_for("forgot_password"))
+
     return render_template("forgot_password.html")
+
+
+@app.route("/change-password", methods=["GET", "POST"])
+@login_required
+def change_password_route():
+    if request.method == "POST":
+        current_password = request.form.get("current_password", "")
+        new_password = request.form.get("new_password", "")
+        confirm = request.form.get("confirm_password", "")
+
+        if not current_password or not new_password or not confirm:
+            flash("All fields are required.", "error")
+            return redirect(url_for("change_password_route"))
+        if new_password != confirm:
+            flash("New passwords do not match.", "error")
+            return redirect(url_for("change_password_route"))
+
+        success, error = change_password(session["user_id"], current_password, new_password)
+        if success:
+            flash("Password changed successfully.", "success")
+            return redirect(url_for("index"))
+        else:
+            flash(error, "error")
+            return redirect(url_for("change_password_route"))
+
+    return render_template("change_password.html")
+
+
+# ---------- ADMIN ROUTES ----------
+
+@app.route("/admin")
+@admin_required
+def admin_dashboard():
+    users = get_all_users()
+    pending = get_pending_requests()
+    return render_template("admin_dashboard.html", users=users, pending=pending)
+
+
+@app.route("/admin/reset/<int:user_id>", methods=["GET", "POST"])
+@admin_required
+def admin_reset(user_id):
+    request_id = request.args.get("request_id", type=int)
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT id, email FROM users WHERE id = %s", (user_id,))
+    target_user = cursor.fetchone()
+    cursor.close()
+    conn.close()
+
+    if not target_user:
+        flash("User not found.", "error")
+        return redirect(url_for("admin_dashboard"))
+
+    if request.method == "POST":
+        new_password = request.form.get("new_password", "")
+        if not new_password or len(new_password) < 6:
+            flash("Temporary password must be at least 6 characters.", "error")
+            return redirect(url_for("admin_reset", user_id=user_id, request_id=request_id))
+
+        admin_reset_password(user_id, new_password, request_id=request_id)
+        flash(f"Password reset for {target_user['email']}. Give them the temporary password directly.", "success")
+        return redirect(url_for("admin_dashboard"))
+
+    return render_template("admin_reset.html", target_user=target_user, request_id=request_id)
 
 
 # ---------- ITEM ROUTES ----------
@@ -151,7 +226,6 @@ def index():
 @app.route("/api/search")
 @login_required
 def api_search():
-    """Returns just the results fragment (count + table/empty-state) for live search."""
     query = request.args.get("q", "").strip()
     category_filter = request.args.get("category", "").strip()
     items = fetch_items(query, category_filter)

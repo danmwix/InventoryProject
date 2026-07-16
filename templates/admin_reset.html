@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-card">
+    <h2>Reset Password for {{ target_user.email }}</h2>
+    <form method="POST">
+        <label>Temporary Password</label>
+        <input type="text" name="new_password" required minlength="6">
+        <button type="submit">Set Temporary Password</button>
+    </form>
+    <p class="hint">Give this password to the user directly (in person, chat, etc.). They can change it after logging in.</p>
+    <p><a href="{{ url_for('admin_dashboard') }}">Back to admin dashboard</a></p>
+</div>
+{% endblock %}

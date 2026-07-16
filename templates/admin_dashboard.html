@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-header">
+    <h1>Admin Dashboard</h1>
+    <p>Manage users and password reset requests</p>
+</div>
+
+{% if pending %}
+<h2 class="section-title"><i class="bi bi-bell"></i> Pending Reset Requests</h2>
+<table class="item-table" style="margin-bottom: 28px;">
+    <thead><tr><th>User</th><th>Requested</th><th>Action</th></tr></thead>
+    <tbody>
+        {% for req in pending %}
+        <tr>
+            <td>{{ req.email }}</td>
+            <td>{{ req.requested_at }}</td>
+            <td><a href="{{ url_for('admin_reset', user_id=req.user_id, request_id=req.request_id) }}" class="btn btn-primary">Reset Password</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+<h2 class="section-title"><i class="bi bi-people"></i> All Users</h2>
+<table class="item-table">
+    <thead><tr><th>Email</th><th>Role</th><th>Joined</th><th>Action</th></tr></thead>
+    <tbody>
+        {% for u in users %}
+        <tr>
+            <td>{{ u.email }}</td>
+            <td>{{ 'Admin' if u.is_admin else 'User' }}</td>
+            <td>{{ u.created_at }}</td>
+            <td><a href="{{ url_for('admin_reset', user_id=u.id) }}" class="btn btn-secondary">Reset Password</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

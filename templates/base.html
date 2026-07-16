@@ -13,6 +13,10 @@
         <span class="brand"><i class="bi bi-boxes"></i> IT Inventory</span>
         <div class="nav-links">
             {% if session.user_id %}
+                {% if session.is_admin %}
+                    <a href="{{ url_for('admin_dashboard') }}"><i class="bi bi-shield-lock"></i> Admin</a>
+                {% endif %}
+                <a href="{{ url_for('change_password_route') }}">Change Password</a>
                 <span class="nav-user"><i class="bi bi-person-circle"></i> {{ session.email }}</span>
                 <a href="{{ url_for('logout') }}">Logout</a>
             {% else %}
