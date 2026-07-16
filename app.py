@@ -12,6 +12,15 @@ from auth import create_user, verify_user, login_required
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+@app.after_request
+def add_no_cache_headers(response):
+    """Prevents the browser from caching protected pages, so hitting
+    the back/forward button after logout forces a fresh request to
+    the server instead of showing a stale cached page."""
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "-1"
+    return response
 
 
 def allowed_file(filename):

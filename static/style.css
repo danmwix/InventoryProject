@@ -10,9 +10,48 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: nowrap;
     background: linear-gradient(135deg, #1e293b, #0f172a);
     color: white;
     padding: 16px 32px;
+    min-height: 60px;
+}
+.navbar .brand {
+    font-weight: 700;
+    font-size: 1.15rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #ffffff;
+    white-space: nowrap;
+}
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+}
+.nav-links a {
+    color: #e2e8f0;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: background 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+}
+.nav-links a:hover { color: white; background: rgba(255,255,255,0.1); }
+.nav-user {
+    color: #ffffff;
+    background: rgba(255,255,255,0.08);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 .navbar .brand { font-weight: 700; font-size: 1.15rem; display: flex; align-items: center; gap: 8px; }
 .nav-links { display: flex; align-items: center; gap: 6px; }
